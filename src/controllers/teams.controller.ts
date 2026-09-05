@@ -59,3 +59,31 @@ export const getTeamsByLeaderId = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export const createTeam = async (req: Request, res: Response) => {
+    
+    const { leaderId, post, course, numOfRequiredMembers } = req.body
+
+    try {
+
+        const newTeam = new Team({
+            leaderId,
+            post,
+            course,
+            numOfRequiredMembers
+        })
+
+        await newTeam.save();
+        res.status(201).json(newTeam)
+    }
+    catch (error) {
+        console.error("Error creating user:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const editTeam = async (req: Request, res: Response) => {
+
+    
+
+}

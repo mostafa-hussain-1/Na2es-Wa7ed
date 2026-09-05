@@ -14,7 +14,7 @@ export const Team = model("Team", new Schema({
         type: String,
         required: true,
     },
-    pendingList: [{ 
+    pendingList: [{
         type: Schema.Types.ObjectId, 
         ref: 'User' 
     }],
