@@ -64,7 +64,6 @@ export const createTeam = async (req: AuthRequest, res: Response) => {
     const leaderId = req.user?.id
 
     try {
-
         const newTeam = new Team({
             leaderId,
             post,
