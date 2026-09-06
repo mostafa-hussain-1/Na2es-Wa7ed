@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { Project } from "../models/project.model.js";
 import { calculateAndUpdateProfileScore } from '../helpers/scoreCalculator.js'
+import { AuthRequest } from "../middlewares/auth.middleware.js";
+
 
 export const getProjectsByOwnerId = async (req: Request, res: Response)=>{
     const {ownerId} = req.params
@@ -43,8 +45,8 @@ export const getProjectById = async (req: Request, res: Response)=>{
 }
 
 
-export const createProject = async (req: Request, res: Response)=>{
-    const { ownerId } = req.params
+export const createProject = async (req: AuthRequest, res: Response)=>{
+    const ownerId = req.user?.id
 
     const { title, description, githubLink, demoLink } = req.body
 

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { Team } from '../models/team.model.js'
+import { checkIdentityMatch } from '../helpers/checkSameUser.js'
+
+
 export interface AuthRequest extends Request {
     user?: { id: string };
     team?: any
@@ -25,3 +27,23 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
         return res.status(403).json({ message: "Invalid Token" });
     }
 };
+
+export const mustSameUser = (req: AuthRequest, res: Response, next: NextFunction) => {
+
+    const tokenID = req.user?.id
+    const {id} = req.params
+
+    const valid = checkIdentityMatch(tokenID as string,  id as string, true)
+
+    if (valid) next()
+}
+
+export const mustAnotherUser = (req: AuthRequest, res: Response, next: NextFunction) => {
+
+    const tokenID = req.user?.id
+    const {id} = req.params
+
+    const valid = checkIdentityMatch(tokenID as string,  id as string, false)
+
+    if (valid) next()
+}
