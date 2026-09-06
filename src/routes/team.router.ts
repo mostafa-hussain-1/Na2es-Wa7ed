@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyToken } from "../middlewares/auth.middleware.js";
-import { getAllTeams, getTeamByID, getTeamsByLeaderId, createTeam, } from '../controllers/teams.controller.js'
+import { getAllTeams, getTeamByID, getTeamsByLeaderId, createTeam, editTeam, deleteTeam, } from '../controllers/teams.controller.js'
 
 export const teamsRouter = Router()
 
@@ -10,8 +10,8 @@ teamsRouter.get('/leader/:leaderId', verifyToken, getTeamsByLeaderId)
 
 
 teamsRouter.post('/', verifyToken, createTeam)
-teamsRouter.put('/:id', verifyToken, )
-teamsRouter.delete('/:id', verifyToken, )
+teamsRouter.put('/:id', verifyToken, editTeam)
+teamsRouter.delete('/:id', verifyToken, deleteTeam)
 
 
 

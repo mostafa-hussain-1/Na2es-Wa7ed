@@ -15,7 +15,7 @@ export const getAllTeams = async (req: Request, res: Response) => {
         return res.status(200).json(teams)
     }
     catch (error) {
-        console.error("Error creating user:", error);
+        console.error("Error fetching all teams:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -35,7 +35,7 @@ export const getTeamByID = async (req: Request, res: Response) => {
         return res.status(200).json(team)
     }
     catch (error) {
-        console.error("Error creating user:", error);
+        console.error("Error fetch team by id:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -55,7 +55,7 @@ export const getTeamsByLeaderId = async (req: Request, res: Response) => {
     }
     catch (error){
 
-        console.error("Error creating user:", error);
+        console.error("Error fetching teams by leader id:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -77,13 +77,50 @@ export const createTeam = async (req: Request, res: Response) => {
         res.status(201).json(newTeam)
     }
     catch (error) {
-        console.error("Error creating user:", error);
+        console.error("Error creating team:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
 
 export const editTeam = async (req: Request, res: Response) => {
 
-    
+    const { post, course, numOfRequiredMembers } = req.body
+    const id = req.params
 
+    try {
+        const team = await Team.findByIdAndUpdate(id, {
+            post, course, numOfRequiredMembers
+        }, { new: true })
+
+        if (!team) {
+            return res.status(404).json({message: "Team not found"})
+        }
+
+        res.status(200).json(team)
+    }
+    catch (error) {
+        console.error("Error edit team:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const deleteTeam = async (req: Request, res: Response) => {
+
+    const id = req.params
+
+    try {
+        const team = Team.findByIdAndDelete(id)
+
+        if (!team) {
+
+            return res.status(404).json({message: "Team not found"})
+        }
+
+        res.status(200).json({message: "Team deleted successfully"})
+
+    }
+    catch (error) {
+        console.error("Error delete team:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 }
