@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Team } from "../models/team.model.js";
-
+import { AuthRequest } from '../middlewares/auth.middleware.js'
 
 
 export const getAllTeams = async (req: Request, res: Response) => {
@@ -22,11 +22,9 @@ export const getAllTeams = async (req: Request, res: Response) => {
 
 export const getTeamByID = async (req: Request, res: Response) => {
 
-    const { id } = req.body
-
+    const { id } = req.params
     try {
-
-        const team = Team.findOne({ id })
+        const team = await Team.findById(id)
 
         if (!team) {
             return res.status(404).json({message: "Team not found"})
@@ -60,9 +58,10 @@ export const getTeamsByLeaderId = async (req: Request, res: Response) => {
     }
 }
 
-export const createTeam = async (req: Request, res: Response) => {
+export const createTeam = async (req: AuthRequest, res: Response) => {
     
-    const { leaderId, post, course, numOfRequiredMembers } = req.body
+    const { post, course, numOfRequiredMembers } = req.body
+    const leaderId = req.user?.id
 
     try {
 
@@ -85,7 +84,7 @@ export const createTeam = async (req: Request, res: Response) => {
 export const editTeam = async (req: Request, res: Response) => {
 
     const { post, course, numOfRequiredMembers } = req.body
-    const id = req.params
+    const { id } = req.params
 
     try {
         const team = await Team.findByIdAndUpdate(id, {
@@ -106,10 +105,10 @@ export const editTeam = async (req: Request, res: Response) => {
 
 export const deleteTeam = async (req: Request, res: Response) => {
 
-    const id = req.params
+    const { id } = req.params
 
     try {
-        const team = Team.findByIdAndDelete(id)
+        const team = await Team.findByIdAndDelete(id)
 
         if (!team) {
 
@@ -122,5 +121,105 @@ export const deleteTeam = async (req: Request, res: Response) => {
     catch (error) {
         console.error("Error delete team:", error);
         return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const applyToTeam = async (req: AuthRequest, res: Response) => {
+
+    const applicantId = req.user?.id
+    const team = req.team
+    try {
+        team.pendingList.addToSet(applicantId); 
+
+        await team.save();
+        res.status(200).json({message: "Applied Successfully", team: team})
+    }
+    catch (error) {
+        console.error("Error apply team:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const cancelApply = async (req: AuthRequest, res: Response) => {
+
+    const applicantId = req.user?.id
+    const team = req.team
+    try {
+        team.pendingList.pull(applicantId); 
+
+        await team.save();
+        res.status(200).json({message: "Cancelled Successfully", team: team})
+    }
+    catch (error) {
+        console.error("Error cancel apply:", error);
+        return res.status(500).json({ message: "Internal server error" });   
+    }
+}
+
+export const leaveTeam = async (req: AuthRequest, res: Response) => {
+
+    const applicantId = req.user?.id
+    const team = req.team
+    try {
+        team.membersList.pull(applicantId); 
+
+        await team.save();
+        res.status(200).json({message: "Leaved Successfully", team: team})
+    }
+    catch (error) {
+        console.error("Error leave team:", error);
+        return res.status(500).json({ message: "Internal server error" });   
+    }
+}
+
+export const acceptMember = async (req: AuthRequest, res: Response) => {
+
+    const { memberId } = req.params;
+    const team = req.team
+    try {
+        team.membersList.addToSet(memberId);
+
+        team.pendingList.pull(memberId);
+
+        await team.save();
+        res.status(200).json({message: "Accept Successfully", team: team})
+    }
+    catch (error) {
+        console.error("Error accept team:", error);
+        return res.status(500).json({ message: "Internal server error" });   
+    }
+}
+
+export const rejectMember = async (req: AuthRequest, res: Response) => {
+
+    const { memberId } = req.params;
+    const team = req.team
+    try {
+        team.pendingList.pull(memberId);
+
+        await team.save();
+        res.status(200).json({message: "Rejected Successfully", team: team})
+    }
+    catch (error) {
+        console.error("Error reject team:", error);
+        return res.status(500).json({ message: "Internal server error" });   
+    }
+}
+
+export const kickMember = async (req: AuthRequest, res: Response) => {
+
+    const { memberId } = req.params;
+    const team = req.team
+    try {
+        team.membersList.pull(memberId);
+        
+        team.blockList.addToSet(memberId);
+
+        await team.save();
+        res.status(200).json({message: "Kicked Successfully", team: team})
+    }
+    catch (error) {
+        console.error("Error kick team:", error);
+        return res.status(500).json({ message: "Internal server error" });   
     }
 }

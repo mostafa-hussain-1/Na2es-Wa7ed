@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { verifyToken } from "../middlewares/auth.middleware.js";
-import { getAllTeams, getTeamByID, getTeamsByLeaderId, createTeam, editTeam, deleteTeam, } from '../controllers/teams.controller.js'
+import { getAllTeams, getTeamByID, getTeamsByLeaderId,
+         createTeam, editTeam, deleteTeam, 
+         applyToTeam, cancelApply, leaveTeam, 
+         acceptMember, rejectMember, kickMember} from '../controllers/teams.controller.js'
 
 export const teamsRouter = Router()
 
@@ -15,11 +18,11 @@ teamsRouter.delete('/:id', verifyToken, deleteTeam)
 
 
 
-teamsRouter.patch('/:id/apply', verifyToken, )
-teamsRouter.patch('/:id/cancel', verifyToken, )
-teamsRouter.patch('/:id/leave', verifyToken, )
+teamsRouter.patch('/:id/apply', verifyToken, applyToTeam)
+teamsRouter.patch('/:id/cancel', verifyToken, cancelApply)
+teamsRouter.patch('/:id/leave', verifyToken, leaveTeam)
 
 
-teamsRouter.patch('/:id/accept', verifyToken, )
-teamsRouter.patch('/:id/reject', verifyToken, )
-teamsRouter.patch('/:id/kick', verifyToken, )
+teamsRouter.patch('/:id/accept/:memberId', verifyToken, acceptMember)
+teamsRouter.patch('/:id/reject/:memberId', verifyToken, rejectMember)
+teamsRouter.patch('/:id/kick/:memberId', verifyToken, kickMember)

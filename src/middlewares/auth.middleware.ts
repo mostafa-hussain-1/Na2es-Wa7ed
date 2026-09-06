@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
+import { Team } from '../models/team.model.js'
 export interface AuthRequest extends Request {
     user?: { id: string };
+    team?: any
 }
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
