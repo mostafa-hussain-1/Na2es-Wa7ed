@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Project } from "../models/project.model.js";
 import { calculateAndUpdateProfileScore } from '../helpers/scoreCalculator.js'
 import { AuthRequest } from "../middlewares/auth.middleware.js";
-
+import { User } from "../models/user.model.js";
 
 export const getProjectsByOwnerId = async (req: Request, res: Response)=>{
     const {ownerId} = req.params
@@ -61,7 +61,11 @@ export const createProject = async (req: AuthRequest, res: Response)=>{
 
         await newProject.save()
 
-        await calculateAndUpdateProfileScore(ownerId as string);
+        const projectsCount = await Project.countDocuments({ ownerId: ownerId as string });
+        const user: any = await User.findById(ownerId)
+        const profileScore = calculateAndUpdateProfileScore(user, projectsCount);
+        user.profileScore = profileScore
+        await user.save()
 
         return res.status(201).json(newProject)
     }
@@ -84,7 +88,7 @@ export const editProject = async (req: Request, res: Response)=>{
             description,
             githubLink,
             demoLink
-        }, { new: true, })
+        }, { returnDocument: 'after' })
 
         if (!updateProject) {
             return res.status(404).json({message: "Project not found"})
@@ -100,14 +104,17 @@ export const editProject = async (req: Request, res: Response)=>{
 
 
 export const deleteProject = async (req: AuthRequest, res: Response)=>{
-    
+    const ownerId = req.user?.id
     try {
-        const project = req.project
-        if (!project) {
-            return res.status(404).json({message: "Project not found"})
-        }
+        const project: any = req.project
+        
+        await project.deleteOne();
 
-        await calculateAndUpdateProfileScore(project.ownerId.toString());
+        const projectsCount = await Project.countDocuments({ ownerId: ownerId as string });
+        const user: any = await User.findById(ownerId)
+        const profileScore = calculateAndUpdateProfileScore(user, projectsCount);
+        user.profileScore = profileScore
+        await user.save()
 
         return res.status(200).json({message: "Project deleted successfully"})
     }

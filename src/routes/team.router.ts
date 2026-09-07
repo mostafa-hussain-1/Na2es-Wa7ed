@@ -7,7 +7,7 @@ import { getAllTeams, getTeamByID, getTeamsByLeaderId,
         } from '../controllers/teams.controller.js'
 
 import { verifyOwnership } from '../middlewares/auth.middleware.js'
-import { teamDataValidation, editTeamDataValidation,
+import { teamDataValidation, preventDuplicateCourseTeam, editTeamDataValidation,
          applyingValidation, cancelingValidation, leaveValidation,
          acceptingValidation, rejectingValidation, kickValidation
         } from '../middlewares/teams.middleware.js'
@@ -22,12 +22,12 @@ teamsRouter.get('/:id', getTeamByID)
 teamsRouter.get('/leader/:leaderId', verifyToken, getTeamsByLeaderId)
 
 
-teamsRouter.post('/', verifyToken, teamDataValidation, createTeam)
+teamsRouter.post('/', verifyToken, preventDuplicateCourseTeam, teamDataValidation, createTeam)
 teamsRouter.put('/:id', verifyToken, verifyOwnership(Team, 'leaderId', 'team', true), editTeamDataValidation, editTeam)
 teamsRouter.delete('/:id', verifyToken, verifyOwnership(Team, 'leaderId', 'team', true), deleteTeam)
 
 
-teamsRouter.patch('/:id/apply', verifyToken, verifyOwnership(Team, 'leaderId', 'team', false), applyingValidation, applyToTeam)
+teamsRouter.patch('/:id/apply', verifyToken, verifyOwnership(Team, 'leaderId', 'team', false), preventDuplicateCourseTeam, applyingValidation, applyToTeam)
 teamsRouter.patch('/:id/cancel', verifyToken, verifyOwnership(Team, 'leaderId', 'team', false), cancelingValidation, cancelApply)
 teamsRouter.patch('/:id/leave', verifyToken, verifyOwnership(Team, 'leaderId', 'team', false), leaveValidation, leaveTeam)
 

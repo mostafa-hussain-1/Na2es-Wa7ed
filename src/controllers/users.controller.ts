@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { User } from '../models/user.model.js';
-import { calculateAndUpdateProfileScore } from '../helpers/scoreCalculator.js'
+import { calculateAndUpdateProfileScore, calculateProfileScore } from '../helpers/scoreCalculator.js'
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 
@@ -22,6 +22,9 @@ export const createUser = async (req: Request, res: Response) => {
             bio,
             tracks
         });
+
+        const newScore = calculateProfileScore(newUser, 0);
+        newUser.profileScore = newScore;
 
         await newUser.save();
 
@@ -84,7 +87,7 @@ export const changePassword = async (req: Request, res: Response) => {
     const { password } = req.body;
     
     try {
-        const updatedUser = await User.findByIdAndUpdate(id, { password: password }, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(id, { password: password }, { returnDocument: 'after' });
 
         if (!updatedUser) {
             return res.status(404).json({ message: "User not found" });
@@ -114,13 +117,13 @@ export const updateUser = async (req: Request, res: Response) => {
             linkedinLink,
             bio,
             tracks
-        }, { new: true, runValidators: true});
+        }, { returnDocument: 'after', runValidators: true});
 
         if (!updatedUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
-        await calculateAndUpdateProfileScore(id as string);
+        await updatedUser.save()
+        calculateAndUpdateProfileScore(id as string)
 
         return res.status(200).json(updatedUser);
     } catch (error) {
@@ -140,7 +143,7 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({message: "Please enter email and password"})
         }
 
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
             return res.status(404).json({message: "Email or password is incorrect"})
@@ -157,6 +160,8 @@ export const login = async (req: Request, res: Response) => {
             process.env.JWT_SECRET as string, 
             { expiresIn: '30d' }
         );
+
+        user.password = ""
 
         return res.status(200).json({
             message: "Log in successfuly",

@@ -4,10 +4,11 @@ function arrayLimit(val: string[]) {
     return val.length <= 7;
 };
 
+
 export const User = model("User", new Schema({
     avatarIndex: {
         type: Number,
-        required: false,
+        required: true,
     },
     name: {
         type: String,
@@ -20,6 +21,7 @@ export const User = model("User", new Schema({
     password: {
         type: String,
         required: true,
+        select: false,
     },
     whatsappNumber: {
         type: String,

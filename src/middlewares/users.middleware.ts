@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import validator from "validator"
 import { fetchCodeforcesData } from "../helpers/codeforces.js"
+import bcrypt from "bcrypt"
 
 
 
@@ -19,7 +20,7 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
             tracks
         } = req.body
 
-    if (!avatarIndex || typeof avatarIndex !== 'number' || avatarIndex > 2 || avatarIndex < -1) {
+    if (typeof avatarIndex !== 'number' || avatarIndex > 2 || avatarIndex <= -1) {
         return res.status(400).json({message: "Invalid avatar index"})
     }
     
@@ -28,7 +29,7 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
     }
 
     if (tracks) {
-        if (!Array.isArray(tracks) || !tracks.every(item => typeof item === 'string')) {
+        if (!Array.isArray(tracks) || !tracks.every(item => typeof item === 'string' && item !== '')) {
             return res.status(400).json({ message: "Tracks must be strings only" });
         }
     }
@@ -37,21 +38,25 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
         return res.status(400).json({ message: "Invalid Email" });
     }
 
+    if (!whatsappNumber && !discordUsername) {
+        return res.status(400).json({ message: "Must be at least one contact info" });
+    }
+
     if (whatsappNumber) {
-        if (!validator.isMobilePhone(whatsappNumber, 'any')) { 
+        if (!validator.isMobilePhone(whatsappNumber, 'any')) {
             return res.status(400).json({ message: "Invalid Phone Number" });
         }
     }
 
     if (githubLink) {
         if (typeof githubLink !== 'string') {
-            return res.status(400).json({ message: "Invalid Link" });
+            return res.status(400).json({ message: "Invalid Github Link" });
         }
         
         try {
             new URL(githubLink); 
         } catch (error) {
-            return res.status(400).json({ message: "Invalid Link" });
+            return res.status(400).json({ message: "Invalid Github Link" });
         }
     }
 
@@ -62,13 +67,13 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
 
     if (linkedinLink) {
         if (typeof linkedinLink !== 'string') {
-            return res.status(400).json({ message: "Invalid Link" });
+            return res.status(400).json({ message: "Invalid Linkedin Link" });
         }
         
         try {
             new URL(linkedinLink); 
         } catch (error) {
-            return res.status(400).json({ message: "Invalid Link" });
+            return res.status(400).json({ message: "Invalid Linkedin Link" });
         }
     }
 
@@ -80,11 +85,6 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
     }
 
     if (codeforcesHandle) {
-        const cfRegex = /^[a-zA-Z0-9_]{3,24}$/;
-        if (!cfRegex.test(codeforcesHandle)) {
-            return res.status(400).json({ message: "Invalid Handle" });
-        }
-
         const cfData = await fetchCodeforcesData(codeforcesHandle);
         
         if (!cfData.isValid) {
@@ -100,9 +100,9 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
 }
 
 
-export const userPasswordValidation = (req: Request, res: Response, next: NextFunction) => {
+export const userPasswordValidation = async (req: Request, res: Response, next: NextFunction) => {
 
-    const { password } = req.body;
+    let { password } = req.body;
 
     if (!password) {
         return res.status(400).json({ message: "كلمة المرور مطلوبة" });
@@ -115,6 +115,13 @@ export const userPasswordValidation = (req: Request, res: Response, next: NextFu
         return res.status(400).json({ 
             message: "Week password, Password must contain at least 8 characters, capital letter, small letter, numbers, special letters" 
         });
+    }
+
+    try {
+        const salt = await bcrypt.genSalt(10);
+        req.body.password = await bcrypt.hash(password, salt);
+    } catch (error) {
+        return res.status(500).json({message: "Internal Server Error"})
     }
 
     next();

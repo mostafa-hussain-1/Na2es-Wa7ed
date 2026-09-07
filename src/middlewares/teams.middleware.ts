@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthRequest } from "./auth.middleware.js";
-import { User } from "../models/user.model.js";
 import { Team } from "../models/team.model.js";
 
-export const teamDataValidation = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const teamDataValidation = (req: Request, res: Response, next: NextFunction) => {
 
     const { post, numOfRequiredMembers } = req.body
 
@@ -15,22 +14,42 @@ export const teamDataValidation = async (req: AuthRequest, res: Response, next: 
         return res.status(400).json({message: "Post must be a string"})
     }
 
+    next()
+}
+
+export const preventDuplicateCourseTeam = async (req: AuthRequest, res: Response, next: NextFunction) => {
 
     try {
-        const leaderId = req.user?.id as string
-        const {course} = req.body
+        const userId = req.user?.id as string
+        let {course} = req.body
 
-        const existingTeam = await Team.findOne({ leaderId, course });
+        if (!course) {
+            const teamId = req.params.id;
+            const targetTeam = await Team.findById(teamId);
+            
+            if (!targetTeam) {
+                return res.status(404).json({ message: "Team not found" });
+            }
+            
+            course = targetTeam.course; 
+        }
+
+        const existingTeam = await Team.findOne({ 
+            course: course,
+            $or: [
+                { leaderId: userId },
+                { membersList: userId } 
+            ]
+        });
 
         if (existingTeam) {
-            return res.status(400).json({ message: "You 're creating team for this course before" });
+            return res.status(400).json({ message: "You 're leader or member in another team for this course before" });
         }
+        next()
     } 
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });
     }
-
-    next()
 }
 
 
@@ -49,7 +68,7 @@ export const editTeamDataValidation = (req: AuthRequest, res: Response, next: Ne
         team.blockList = []
     }
     if (numOfRequiredMembers !== team.numOfRequiredMembers) {
-        if (numOfRequiredMembers < 1 || typeof numOfRequiredMembers != 'number' || numOfRequiredMembers < team.memberList.length) {
+        if (numOfRequiredMembers < 1 || typeof numOfRequiredMembers != 'number' || numOfRequiredMembers < team.membersList.length) {
             return res.status(400).json({message: "Number of required members must be positive number and greater than or equal num of members"})
         }
     }
@@ -71,16 +90,17 @@ export const applyingValidation = async (req: AuthRequest, res: Response, next: 
         return res.status(404).json({message: "Team not found"})
     }
 
-    if (team.membersList.includes(applicantID as any) || 
-        team.pendingList.includes(applicantID as any) ||
-        team.blockList.includes(applicantID as any)) {
+    if (team.membersList.includes(applicantID as any)) {
 
-            return res.status(400).json({message: "User already exist"})
+        return res.status(400).json({message: "User already exist"})
     }
 
-    const user: any = await User.findById(applicantID)
-    if (user.acceptedCourses.includes(team.course)) {
-        return res.status(400).json({message: "User already exist in another team"})
+    if (team.pendingList.includes(applicantID as any)) {
+        return res.status(400).json({message: "User already applied"})
+    }
+
+    if (team.blockList.includes(applicantID as any)) {
+        return res.status(400).json({message: "User has been blocked"})
     }
 
     next()
@@ -124,7 +144,7 @@ export const leaveValidation = (req: AuthRequest, res: Response, next: NextFunct
 }
 
 export const acceptingValidation = (req: AuthRequest, res: Response, next: NextFunction) => {
-    const applicantID = req.user?.id
+    const {memberId} = req.params
 
     const team = req.team
 
@@ -132,10 +152,13 @@ export const acceptingValidation = (req: AuthRequest, res: Response, next: NextF
         return res.status(404).json({message: "Team not found"})
     }
 
-    if (team.membersList.includes(applicantID as any) || 
-        !team.pendingList.includes(applicantID as any)) {
+    if (team.membersList.includes(memberId as any)) {
 
-            return res.status(400).json({message: "User already exist"})
+        return res.status(400).json({message: "User already exist"})
+    }
+
+    if (!team.pendingList.includes(memberId as any)) {
+        return res.status(404).json({message: "User not found"})
     }
 
     if (team.numOfRequiredMembers === team.membersList.length){
@@ -146,7 +169,7 @@ export const acceptingValidation = (req: AuthRequest, res: Response, next: NextF
 }
 
 export const rejectingValidation = (req: AuthRequest, res: Response, next: NextFunction) => {
-    const applicantID = req.user?.id
+    const {memberId} = req.params
 
     const team = req.team
 
@@ -155,16 +178,16 @@ export const rejectingValidation = (req: AuthRequest, res: Response, next: NextF
         return res.status(404).json({message: "Team not found"})
     }
 
-    if (!team.pendingList.includes(applicantID as any)) {
+    if (!team.pendingList.includes(memberId as any)) {
 
-        return res.status(400).json({message: "User already exist"})
+        return res.status(404).json({message: "User not found"})
     }
 
     next()
 }
 
 export const kickValidation = (req: AuthRequest, res: Response, next: NextFunction) => {
-    const applicantID = req.user?.id
+    const {memberId} = req.params
 
     const team = req.team
 
@@ -172,9 +195,9 @@ export const kickValidation = (req: AuthRequest, res: Response, next: NextFuncti
         return res.status(404).json({message: "Team not found"})
     }
 
-    if (!team.membersList.includes(applicantID as any)) {
+    if (!team.membersList.includes(memberId as any)) {
 
-        return res.status(400).json({message: "User already exist"})
+        return res.status(404).json({message: "User not found"})
     }
     next()
 }

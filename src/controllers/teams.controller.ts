@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Team } from "../models/team.model.js";
 import { AuthRequest } from '../middlewares/auth.middleware.js'
 import { User } from "../models/user.model.js";
+import { calculateAndUpdateProfileScore } from "../helpers/scoreCalculator.js";
 
 export const getAllTeams = async (req: Request, res: Response) => {
 
@@ -71,7 +72,23 @@ export const createTeam = async (req: AuthRequest, res: Response) => {
             numOfRequiredMembers
         })
 
+        await Team.updateMany(
+            { course: course }, 
+            { $pull: { pendingList: leaderId } }
+        );
+
         await newTeam.save();
+        
+        const user: any = await User.findById(leaderId);
+        if (!user) {
+            return res.status(404).json({message: "user not found"})
+        }
+        user.acceptedCourses.addToSet(course);
+        
+        await user.save();
+        
+        calculateAndUpdateProfileScore(leaderId as string)
+        
         res.status(201).json(newTeam)
     }
     catch (error) {
@@ -101,19 +118,26 @@ export const editTeam = async (req: AuthRequest, res: Response) => {
 }
 
 export const deleteTeam = async (req: AuthRequest, res: Response) => {
-
-    const { id } = req.params
-
+    const leaderId = req.user?.id
     try {
-        const team = req.team
+        const team: any = req.team
 
-        if (!team) {
-
-            return res.status(404).json({message: "Team not found"})
+        if (team.membersList && team.membersList.length > 0) {
+            return res.status(400).json({ 
+                message: "You can't delete team if you have members" 
+            });
         }
 
-        res.status(200).json({message: "Team deleted successfully"})
+        await team.deleteOne();
 
+        const user: any = await User.findById(leaderId);
+
+        user.acceptedCourses.pull(team.course);
+        await user.save();
+
+        calculateAndUpdateProfileScore(leaderId as string)
+
+        res.status(200).json({message: "Team deleted successfully"})
     }
     catch (error) {
         console.error("Error delete team:", error);
@@ -128,6 +152,7 @@ export const applyToTeam = async (req: AuthRequest, res: Response) => {
     try {
         
         team.pendingList.addToSet(applicantId); 
+
         await team.save();
         
         res.status(200).json({message: "Applied Successfully", team: team})
@@ -183,11 +208,17 @@ export const acceptMember = async (req: AuthRequest, res: Response) => {
 
         team.pendingList.pull(memberId);
 
-        const user: any = await User.findById(memberId)
-        user.acceptedCourses.push(team.course)
-
-        await user.save();
+        if (team.membersList.length === team.numOfRequiredMembers) {
+            team.isCompleted = true
+        }
         await team.save();
+
+        const user: any = await User.findById(memberId)
+        user.acceptedCourses.addToSet(team.course)
+        await user.save();
+
+        calculateAndUpdateProfileScore(memberId as string)
+
         res.status(200).json({message: "Accept Successfully", team: team})
     }
     catch (error) {
@@ -221,11 +252,17 @@ export const kickMember = async (req: AuthRequest, res: Response) => {
         
         team.blockList.addToSet(memberId);
 
+        if (team.membersList.length !== team.numOfRequiredMembers) {
+            team.isCompleted = false
+        }
+        await team.save();
+
         const user: any = await User.findById(memberId);
         user.acceptedCourses.pull(team.course);
         await user.save();
 
-        await team.save();
+        calculateAndUpdateProfileScore(memberId as string)
+
         res.status(200).json({message: "Kicked Successfully", team: team})
     }
     catch (error) {
