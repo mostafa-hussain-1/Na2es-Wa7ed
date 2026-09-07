@@ -6,11 +6,13 @@ import { getAllTeams, getTeamByID, getTeamsByLeaderId,
          acceptMember, rejectMember, kickMember
         } from '../controllers/teams.controller.js'
 
-import { mustSameUser, mustAnotherUser } from '../middlewares/auth.middleware.js'
+import { verifyOwnership } from '../middlewares/auth.middleware.js'
 import { teamDataValidation, editTeamDataValidation,
          applyingValidation, cancelingValidation, leaveValidation,
          acceptingValidation, rejectingValidation, kickValidation
         } from '../middlewares/teams.middleware.js'
+
+import { Team } from "../models/team.model.js";
 
 
 export const teamsRouter = Router()
@@ -21,15 +23,15 @@ teamsRouter.get('/leader/:leaderId', verifyToken, getTeamsByLeaderId)
 
 
 teamsRouter.post('/', verifyToken, teamDataValidation, createTeam)
-teamsRouter.put('/:id', verifyToken, mustSameUser, editTeamDataValidation, editTeam)
-teamsRouter.delete('/:id', verifyToken, mustSameUser, deleteTeam)
+teamsRouter.put('/:id', verifyToken, verifyOwnership(Team, 'leaderId', 'team', true), editTeamDataValidation, editTeam)
+teamsRouter.delete('/:id', verifyToken, verifyOwnership(Team, 'leaderId', 'team', true), deleteTeam)
 
 
-teamsRouter.patch('/:id/apply', verifyToken, mustAnotherUser, applyingValidation, applyToTeam)
-teamsRouter.patch('/:id/cancel', verifyToken, mustAnotherUser, cancelingValidation, cancelApply)
-teamsRouter.patch('/:id/leave', verifyToken, mustAnotherUser, leaveValidation, leaveTeam)
+teamsRouter.patch('/:id/apply', verifyToken, verifyOwnership(Team, 'leaderId', 'team', false), applyingValidation, applyToTeam)
+teamsRouter.patch('/:id/cancel', verifyToken, verifyOwnership(Team, 'leaderId', 'team', false), cancelingValidation, cancelApply)
+teamsRouter.patch('/:id/leave', verifyToken, verifyOwnership(Team, 'leaderId', 'team', false), leaveValidation, leaveTeam)
 
 
-teamsRouter.patch('/:id/accept/:memberId', verifyToken, mustSameUser, acceptingValidation, acceptMember)
-teamsRouter.patch('/:id/reject/:memberId', verifyToken, mustSameUser, rejectingValidation, rejectMember)
-teamsRouter.patch('/:id/kick/:memberId', verifyToken, mustSameUser, kickValidation, kickMember)
+teamsRouter.patch('/:id/accept/:memberId', verifyToken, verifyOwnership(Team, 'leaderId', 'team', true), acceptingValidation, acceptMember)
+teamsRouter.patch('/:id/reject/:memberId', verifyToken, verifyOwnership(Team, 'leaderId', 'team', true), rejectingValidation, rejectMember)
+teamsRouter.patch('/:id/kick/:memberId', verifyToken, verifyOwnership(Team, 'leaderId', 'team', true), kickValidation, kickMember)

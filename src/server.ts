@@ -4,6 +4,8 @@ import {connectDB} from './config/db.js';
 import {usersRouter} from './routes/users.router.js';
 import { projectsRouter } from './routes/projects.router.js';
 import { teamsRouter } from './routes/team.router.js';
+import { scheduleCodeforcesUpdate } from './helpers/codeforces.js'
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +20,7 @@ app.use('/teams', teamsRouter)
 dotenv.config();
 
 connectDB().then(() => {
+    scheduleCodeforcesUpdate();
     app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     })

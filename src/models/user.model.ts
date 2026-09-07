@@ -33,6 +33,14 @@ export const User = model("User", new Schema({
         type: String,
         required: false,
     },
+    codeforcesRating: {
+        type: Number,
+        required: false
+    },
+    codeforcesRank: {
+        type: String,
+        required: false
+    },
     githubLink: {
         type: String,
         required: false,

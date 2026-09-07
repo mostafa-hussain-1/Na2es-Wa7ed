@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Team } from "../models/team.model.js";
 import { AuthRequest } from '../middlewares/auth.middleware.js'
-
+import { User } from "../models/user.model.js";
 
 export const getAllTeams = async (req: Request, res: Response) => {
 
@@ -80,19 +80,17 @@ export const createTeam = async (req: AuthRequest, res: Response) => {
     }
 }
 
-export const editTeam = async (req: Request, res: Response) => {
+export const editTeam = async (req: AuthRequest, res: Response) => {
 
     const { post, course, numOfRequiredMembers } = req.body
-    const { id } = req.params
+    const team: any = req.team
 
     try {
-        const team = await Team.findByIdAndUpdate(id, {
-            post, course, numOfRequiredMembers
-        }, { new: true })
+        team.post = post;
+        team.course = course;
+        team.numOfRequiredMembers = numOfRequiredMembers;
 
-        if (!team) {
-            return res.status(404).json({message: "Team not found"})
-        }
+        await team.save();
 
         res.status(200).json(team)
     }
@@ -102,12 +100,12 @@ export const editTeam = async (req: Request, res: Response) => {
     }
 }
 
-export const deleteTeam = async (req: Request, res: Response) => {
+export const deleteTeam = async (req: AuthRequest, res: Response) => {
 
     const { id } = req.params
 
     try {
-        const team = await Team.findByIdAndDelete(id)
+        const team = req.team
 
         if (!team) {
 
@@ -126,11 +124,12 @@ export const deleteTeam = async (req: Request, res: Response) => {
 export const applyToTeam = async (req: AuthRequest, res: Response) => {
 
     const applicantId = req.user?.id
-    const team = req.team
+    const team: any = req.team
     try {
+        
         team.pendingList.addToSet(applicantId); 
-
         await team.save();
+        
         res.status(200).json({message: "Applied Successfully", team: team})
     }
     catch (error) {
@@ -142,7 +141,7 @@ export const applyToTeam = async (req: AuthRequest, res: Response) => {
 export const cancelApply = async (req: AuthRequest, res: Response) => {
 
     const applicantId = req.user?.id
-    const team = req.team
+    const team: any = req.team
     try {
         team.pendingList.pull(applicantId); 
 
@@ -158,9 +157,13 @@ export const cancelApply = async (req: AuthRequest, res: Response) => {
 export const leaveTeam = async (req: AuthRequest, res: Response) => {
 
     const applicantId = req.user?.id
-    const team = req.team
+    const team: any = req.team
     try {
         team.membersList.pull(applicantId); 
+
+        const user: any = await User.findById(applicantId);
+        user.acceptedCourses.pull(team.course);
+        await user.save();
 
         await team.save();
         res.status(200).json({message: "Leaved Successfully", team: team})
@@ -174,12 +177,16 @@ export const leaveTeam = async (req: AuthRequest, res: Response) => {
 export const acceptMember = async (req: AuthRequest, res: Response) => {
 
     const { memberId } = req.params;
-    const team = req.team
+    const team: any = req.team
     try {
         team.membersList.addToSet(memberId);
 
         team.pendingList.pull(memberId);
 
+        const user: any = await User.findById(memberId)
+        user.acceptedCourses.push(team.course)
+
+        await user.save();
         await team.save();
         res.status(200).json({message: "Accept Successfully", team: team})
     }
@@ -192,7 +199,7 @@ export const acceptMember = async (req: AuthRequest, res: Response) => {
 export const rejectMember = async (req: AuthRequest, res: Response) => {
 
     const { memberId } = req.params;
-    const team = req.team
+    const team: any = req.team
     try {
         team.pendingList.pull(memberId);
 
@@ -208,11 +215,15 @@ export const rejectMember = async (req: AuthRequest, res: Response) => {
 export const kickMember = async (req: AuthRequest, res: Response) => {
 
     const { memberId } = req.params;
-    const team = req.team
+    const team: any = req.team
     try {
         team.membersList.pull(memberId);
         
         team.blockList.addToSet(memberId);
+
+        const user: any = await User.findById(memberId);
+        user.acceptedCourses.pull(team.course);
+        await user.save();
 
         await team.save();
         res.status(200).json({message: "Kicked Successfully", team: team})

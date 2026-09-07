@@ -99,11 +99,10 @@ export const editProject = async (req: Request, res: Response)=>{
 }
 
 
-export const deleteProject = async (req: Request, res: Response)=>{
-    const { id } = req.params
-
+export const deleteProject = async (req: AuthRequest, res: Response)=>{
+    
     try {
-        const project = await Project.findByIdAndDelete(id)
+        const project = req.project
         if (!project) {
             return res.status(404).json({message: "Project not found"})
         }

@@ -1,11 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { checkIdentityMatch } from '../helpers/checkSameUser.js'
+import { Model } from "mongoose";
+import { Team } from "../models/team.model.js";
+import { Project } from "../models/project.model.js";
 
 
 export interface AuthRequest extends Request {
     user?: { id: string };
-    team?: any
+    team?: InstanceType<typeof Team>; 
+    project?: InstanceType<typeof Project>;
 }
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -28,22 +31,35 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
     }
 };
 
-export const mustSameUser = (req: AuthRequest, res: Response, next: NextFunction) => {
 
-    const tokenID = req.user?.id
-    const {id} = req.params
+export const verifyOwnership = (
+    DbModel: Model<any>, 
+    ownerFieldName: string, 
+    reqObjectName: string, 
+    needMatch: boolean
+) => {
+    return async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const tokenID = req.user?.id;
+            const { id } = req.params;
 
-    const valid = checkIdentityMatch(tokenID as string,  id as string, true)
+            const doc = await DbModel.findById(id);
+            if (!doc) {
+                return res.status(404).json({ message: "Data not found" });
+            }
 
-    if (valid) next()
-}
+            const targetID = doc[ownerFieldName].toString();
 
-export const mustAnotherUser = (req: AuthRequest, res: Response, next: NextFunction) => {
+            const valid = needMatch ? tokenID === targetID : tokenID !== targetID;
 
-    const tokenID = req.user?.id
-    const {id} = req.params
-
-    const valid = checkIdentityMatch(tokenID as string,  id as string, false)
-
-    if (valid) next()
-}
+            if (valid) {
+                (req as any)[reqObjectName] = doc; 
+                next();
+            } else {
+                return res.status(403).json({ message: "Forbidden" });
+            }
+        } catch (error) {
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    };
+};
