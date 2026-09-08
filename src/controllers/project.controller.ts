@@ -60,13 +60,7 @@ export const createProject = async (req: AuthRequest, res: Response)=>{
         })
 
         await newProject.save()
-
-        const projectsCount = await Project.countDocuments({ ownerId: ownerId as string });
-        const user: any = await User.findById(ownerId)
-        const profileScore = calculateAndUpdateProfileScore(user, projectsCount);
-        user.profileScore = profileScore
-        await user.save()
-
+        calculateAndUpdateProfileScore(ownerId as string);
         return res.status(201).json(newProject)
     }
     catch (error) {
@@ -110,11 +104,7 @@ export const deleteProject = async (req: AuthRequest, res: Response)=>{
         
         await project.deleteOne();
 
-        const projectsCount = await Project.countDocuments({ ownerId: ownerId as string });
-        const user: any = await User.findById(ownerId)
-        const profileScore = calculateAndUpdateProfileScore(user, projectsCount);
-        user.profileScore = profileScore
-        await user.save()
+        calculateAndUpdateProfileScore(ownerId as string);
 
         return res.status(200).json({message: "Project deleted successfully"})
     }
