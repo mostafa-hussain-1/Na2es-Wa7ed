@@ -7,7 +7,7 @@ import { teamsRouter } from './routes/team.router.js';
 import { scheduleCodeforcesUpdate } from './helpers/codeforces.js'
 import { setupSwagger } from './config/swagger.js';
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 3000;
 
 
