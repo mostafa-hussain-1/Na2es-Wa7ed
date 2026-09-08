@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { User } from '../models/user.model.js';
 import { calculateAndUpdateProfileScore, calculateProfileScore } from '../helpers/scoreCalculator.js'
+import { AuthRequest } from '../middlewares/auth.middleware.js';
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 
@@ -34,8 +35,8 @@ export const createUser = async (req: Request, res: Response) => {
             { expiresIn: '30d' }
         );
 
-        return res.status(200).json({
-            message: "Log in successfuly",
+        return res.status(201).json({
+            message: "Created Successfully",
             token,
             user: newUser
         });
@@ -81,13 +82,13 @@ export const getUserById = async (req: Request, res: Response) => {
 };
 
 
-export const changePassword = async (req: Request, res: Response) => {
+export const changePassword = async (req: AuthRequest, res: Response) => {
     
-    const { id } = req.params;
-    const { password } = req.body;
+    const id = req.user?.id;
+    const { newPassword } = req.body;
     
     try {
-        const updatedUser = await User.findByIdAndUpdate(id, { password: password }, { returnDocument: 'after' });
+        const updatedUser = await User.findByIdAndUpdate(id, { password: newPassword }, { returnDocument: 'after' });
 
         if (!updatedUser) {
             return res.status(404).json({ message: "User not found" });
@@ -101,8 +102,8 @@ export const changePassword = async (req: Request, res: Response) => {
 };
 
 
-export const updateUser = async (req: Request, res: Response) => {
-    const { id } = req.params;
+export const updateUser = async (req: AuthRequest, res: Response) => {
+    const id = req.user?.id;
     const { avatarIndex, name, email, whatsappNumber, discordUsername, codeforcesHandle, githubLink, linkedinLink, bio, tracks } = req.body;
 
     try {
@@ -146,7 +147,7 @@ export const login = async (req: Request, res: Response) => {
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
-            return res.status(404).json({message: "Email or password is incorrect"})
+            return res.status(400).json({message: "Email or password is incorrect"})
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password)

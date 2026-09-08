@@ -2,7 +2,8 @@ import { Request, Response, NextFunction } from "express"
 import validator from "validator"
 import { fetchCodeforcesData } from "../helpers/codeforces.js"
 import bcrypt from "bcrypt"
-
+import { User } from "../models/user.model.js"
+import { AuthRequest } from "./auth.middleware.js"
 
 
 export const userDataValidation = async (req: Request, res: Response, next: NextFunction) => {
@@ -100,18 +101,26 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
 }
 
 
-export const userPasswordValidation = async (req: Request, res: Response, next: NextFunction) => {
+export const userPasswordValidation = async (req: AuthRequest, res: Response, next: NextFunction) => {
 
-    let { password } = req.body;
+    let { newPassword, oldPassword } = req.body;
+    const id = req.user?.id
 
-    if (!password) {
-        return res.status(400).json({ message: "كلمة المرور مطلوبة" });
+    const user: any = await User.findById(id)
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password)
+    
+    if (!isPasswordValid) {
+        return res.status(400).json({message: "Old password is incorrect"})
+    }
+
+    if (!newPassword) {
+        return res.status(400).json({ message: "Password is required" });
     }
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
 
-
-    if (!passwordRegex.test(password)) {
+    if (!passwordRegex.test(newPassword)) {
         return res.status(400).json({ 
             message: "Week password, Password must contain at least 8 characters, capital letter, small letter, numbers, special letters" 
         });
@@ -119,7 +128,7 @@ export const userPasswordValidation = async (req: Request, res: Response, next: 
 
     try {
         const salt = await bcrypt.genSalt(10);
-        req.body.password = await bcrypt.hash(password, salt);
+        req.body.password = await bcrypt.hash(newPassword, salt);
     } catch (error) {
         return res.status(500).json({message: "Internal Server Error"})
     }

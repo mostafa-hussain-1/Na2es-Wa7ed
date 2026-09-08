@@ -5,7 +5,7 @@ import {usersRouter} from './routes/users.router.js';
 import { projectsRouter } from './routes/projects.router.js';
 import { teamsRouter } from './routes/team.router.js';
 import { scheduleCodeforcesUpdate } from './helpers/codeforces.js'
-
+import { setupSwagger } from './config/swagger.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +18,8 @@ app.use('/projects', projectsRouter)
 app.use('/teams', teamsRouter)
 
 dotenv.config();
+
+setupSwagger(app);
 
 connectDB().then(() => {
     scheduleCodeforcesUpdate();
