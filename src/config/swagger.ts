@@ -1,7 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
-import path from 'path';
+
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -32,8 +33,7 @@ const options = {
     ],
   },
   apis: [
-    path.join(process.cwd(), 'dist/routes/**/*.js'),
-    path.join(process.cwd(), 'dist/controllers/**/*.js')
+    'src/routes/**/*.ts', 'dist/controllers/**/*.js'
   ],
 };
 

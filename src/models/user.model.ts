@@ -9,6 +9,7 @@ export const User = model("User", new Schema({
     avatarIndex: {
         type: Number,
         required: true,
+        
     },
     name: {
         type: String,

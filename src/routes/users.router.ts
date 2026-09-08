@@ -2,7 +2,7 @@ import Router from "express";
 import { createUser, getAllUsers, getUserById , changePassword, updateUser, login } from "../controllers/users.controller.js";
 import { verifyToken } from '../middlewares/auth.middleware.js';
 import { verifyOwnership } from '../middlewares/auth.middleware.js'
-import { userDataValidation, userPasswordValidation } from '../middlewares/users.middleware.js'
+import { userDataValidation, userPasswordValidation, isCorrectPassword } from '../middlewares/users.middleware.js'
 import { User } from "../models/user.model.js";
 
 export const usersRouter = Router();
@@ -152,7 +152,7 @@ usersRouter.post("/", userDataValidation, userPasswordValidation, createUser);
  *       500:
  *         description: Internal Server Error
  */
-usersRouter.patch("/:id", verifyToken, verifyOwnership(User, '_id', 'team', true), userPasswordValidation, changePassword);
+usersRouter.patch("/:id", verifyToken, verifyOwnership(User, '_id', 'team', true), isCorrectPassword, userPasswordValidation, changePassword);
 
 /**
  * @openapi

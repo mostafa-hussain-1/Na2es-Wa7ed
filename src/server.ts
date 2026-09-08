@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import {connectDB} from './config/db.js';
 import {usersRouter} from './routes/users.router.js';
 import { projectsRouter } from './routes/projects.router.js';
@@ -11,6 +12,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 
+app.use(cors());
+
 app.use(express.json());
 
 app.use('/users', usersRouter);
@@ -21,13 +24,10 @@ dotenv.config();
 
 setupSwagger(app);
 
-connectDB();
-scheduleCodeforcesUpdate();
-
-if (process.env.NODE_ENV !== 'production') {
+connectDB().then(()=>{
+    scheduleCodeforcesUpdate();
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
-}
-
+})
 export default app;
