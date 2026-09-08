@@ -32,10 +32,7 @@ const options = {
     ],
   },
   apis: [
-    path.join(process.cwd(), 'src/routes/**/*.ts'),
-    path.join(process.cwd(), 'src/controllers/**/*.ts'),
-    path.join(process.cwd(), 'dist/routes/**/*.js'),
-    path.join(process.cwd(), 'dist/controllers/**/*.js')
+    path.join(process.cwd(), 'dist/**/*.js')
   ],
 };
 
