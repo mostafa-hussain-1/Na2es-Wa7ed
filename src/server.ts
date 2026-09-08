@@ -7,7 +7,7 @@ import { teamsRouter } from './routes/team.router.js';
 import { scheduleCodeforcesUpdate } from './helpers/codeforces.js'
 import { setupSwagger } from './config/swagger.js';
 
-export const app = express();
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 
@@ -21,9 +21,13 @@ dotenv.config();
 
 setupSwagger(app);
 
-connectDB().then(() => {
-    scheduleCodeforcesUpdate();
+connectDB();
+scheduleCodeforcesUpdate();
+
+if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    })
-})
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+export default app;
