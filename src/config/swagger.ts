@@ -32,10 +32,10 @@ const options = {
     ],
   },
   apis: [
-    './src/routes/**/*.ts',
-    './src/controllers/**/*.ts',
-    './dist/routes/**/*.js',
-    './dist/controllers/**/*.js'
+    './src/routes/*.ts',
+    './src/controllers/*.ts',
+    './dist/routes/*.js',
+    './dist/controllers/*.js'
   ],
 };
 
