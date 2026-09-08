@@ -43,5 +43,8 @@
 
     "outDir": "./dist",
     "rootDir": "./src",
+
+    "removeComments": false,
+    "resolveJsonModule": true
   }
 }
