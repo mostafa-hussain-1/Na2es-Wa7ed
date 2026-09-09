@@ -7,7 +7,7 @@ import { calculateAndUpdateProfileScore } from "../helpers/scoreCalculator.js";
 export const getAllTeams = async (req: Request, res: Response) => {
 
     try {
-        const teams = await Team.find()
+        const teams = await Team.find().populate('leaderId', 'name avatarIndex')
 
         if (teams.length === 0) {
             return res.status(404).json({message: "Teams not found"})
@@ -26,7 +26,10 @@ export const getTeamByID = async (req: Request, res: Response) => {
     const { id } = req.params
     try {
         const team = await Team.findById(id)
-
+            .populate('leaderId', 'name bio avatarIndex')
+            .populate('pendingList', 'name bio avatarIndex')
+            .populate('membersList', 'name bio avatarIndex')
+            .populate('blockList', 'name bio avatarIndex');
         if (!team) {
             return res.status(404).json({message: "Team not found"})
         }
@@ -159,7 +162,7 @@ export const applyToTeam = async (req: AuthRequest, res: Response) => {
     }
     catch (error) {
         console.error("Error apply team:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", details: error });
     }
 }
 

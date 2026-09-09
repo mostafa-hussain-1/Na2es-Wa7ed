@@ -27,7 +27,7 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
         
         next(); 
     } catch (error) {
-        return res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({ message: "Internal Server Error", details: error });
     }
 };
 
@@ -59,7 +59,7 @@ export const verifyOwnership = (
                 return res.status(403).json({ message: "Forbidden" });
             }
         } catch (error) {
-            return res.status(500).json({ message: "Internal server error" });
+            return res.status(500).json({ message: "Internal server error", details: error });
         }
     };
 };

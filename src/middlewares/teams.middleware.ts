@@ -21,17 +21,10 @@ export const preventDuplicateCourseTeam = async (req: AuthRequest, res: Response
 
     try {
         const userId = req.user?.id as string
-        let {course} = req.body
+        let course = req.team?.course
 
         if (!course) {
-            const teamId = req.params.id;
-            const targetTeam = await Team.findById(teamId);
-            
-            if (!targetTeam) {
-                return res.status(404).json({ message: "Team not found" });
-            }
-            
-            course = targetTeam.course; 
+            return res.status(404).json({ message: "Team not found" });
         }
 
         const existingTeam = await Team.findOne({ 
@@ -47,8 +40,8 @@ export const preventDuplicateCourseTeam = async (req: AuthRequest, res: Response
         }
         next()
     } 
-    catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+    catch (error: any) {
+        return res.status(500).json({ message: "Internal server error", details: error.message });
     }
 }
 

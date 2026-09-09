@@ -7,7 +7,8 @@ import bcrypt from "bcrypt"
 
 
 export const createUser = async (req: Request, res: Response) => {
-    const { avatarIndex, name, email, password, whatsappNumber, discordUsername, codeforcesHandle, githubLink, linkedinLink, bio, tracks } = req.body;
+    const { avatarIndex, name, email, password, whatsappNumber, discordUsername, codeforcesHandle, codeforcesRating,
+            codeforcesRank, githubLink, linkedinLink, bio, tracks } = req.body;
 
     try {
         const newUser = new User({
@@ -18,6 +19,8 @@ export const createUser = async (req: Request, res: Response) => {
             whatsappNumber,
             discordUsername,
             codeforcesHandle,
+            codeforcesRating,
+            codeforcesRank,
             githubLink,
             linkedinLink,
             bio,

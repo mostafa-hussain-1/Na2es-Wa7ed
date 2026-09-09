@@ -35,6 +35,12 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
         }
     }
 
+    const isExist = await User.exists({email})
+
+    if (isExist) {
+        return res.status(400).json({ message: "This Email is already exist. Try Sign in" });
+    }
+
     if (!validator.isEmail(email)) {
         return res.status(400).json({ message: "Invalid Email" });
     }
