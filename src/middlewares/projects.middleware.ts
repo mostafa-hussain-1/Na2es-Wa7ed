@@ -14,13 +14,20 @@ export const validateProjectInfo = (req: Request, res: Response, next: NextFunct
 
     if (githubLink) {
         if (typeof githubLink !== 'string') {
-            return res.status(400).json({ message: "Invalid Link" });
+            return res.status(400).json({ message: "Invalid Github Link format" });
         }
         
         try {
-            new URL(githubLink); 
+            const urlObj = new URL(githubLink); 
+           
+            if (urlObj.protocol !== 'https:' && urlObj.protocol !== 'http:') {
+                return res.status(400).json({ message: "Github link must start with https://" });
+            }
+            if (!urlObj.hostname.includes('github.com')) {
+                return res.status(400).json({ message: "Link must be a valid github.com domain" });
+            }
         } catch (error) {
-            return res.status(400).json({ message: "Invalid Link" });
+            return res.status(400).json({ message: "Invalid Github Link structure" });
         }
     }
 

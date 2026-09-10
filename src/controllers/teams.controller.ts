@@ -193,6 +193,10 @@ export const leaveTeam = async (req: AuthRequest, res: Response) => {
         user.acceptedCourses.pull(team.course);
         await user.save();
 
+        if (team.membersList.length !== team.numOfRequiredMembers) {
+            team.isCompleted = false
+        }
+
         await team.save();
         res.status(200).json({message: "Leaved Successfully", team: team})
     }

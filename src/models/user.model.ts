@@ -26,7 +26,7 @@ export const User = model("User", new Schema({
     },
     whatsappNumber: {
         type: String,
-        required: false,
+        required: true,
     },
     discordUsername: {
         type: String,

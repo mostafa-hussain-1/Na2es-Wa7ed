@@ -11,7 +11,6 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
     const {
             avatarIndex,
             name,
-            email,
             whatsappNumber,
             discordUsername,
             codeforcesHandle,
@@ -35,17 +34,7 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
         }
     }
 
-    const isExist = await User.exists({email})
-
-    if (isExist) {
-        return res.status(400).json({ message: "This Email is already exist. Try Sign in" });
-    }
-
-    if (!validator.isEmail(email)) {
-        return res.status(400).json({ message: "Invalid Email" });
-    }
-
-    if (!whatsappNumber && !discordUsername) {
+    if (!whatsappNumber) {
         return res.status(400).json({ message: "Enter Whatsapp Number" });
     }
 
@@ -57,13 +46,20 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
 
     if (githubLink) {
         if (typeof githubLink !== 'string') {
-            return res.status(400).json({ message: "Invalid Github Link" });
+            return res.status(400).json({ message: "Invalid Github Link format" });
         }
         
         try {
-            new URL(githubLink); 
+            const urlObj = new URL(githubLink); 
+           
+            if (urlObj.protocol !== 'https:' && urlObj.protocol !== 'http:') {
+                return res.status(400).json({ message: "Github link must start with https://" });
+            }
+            if (!urlObj.hostname.includes('github.com')) {
+                return res.status(400).json({ message: "Link must be a valid github.com domain" });
+            }
         } catch (error) {
-            return res.status(400).json({ message: "Invalid Github Link" });
+            return res.status(400).json({ message: "Invalid Github Link structure" });
         }
     }
 
@@ -74,13 +70,19 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
 
     if (linkedinLink) {
         if (typeof linkedinLink !== 'string') {
-            return res.status(400).json({ message: "Invalid Linkedin Link" });
+            return res.status(400).json({ message: "Invalid Linkedin Link format" });
         }
         
         try {
-            new URL(linkedinLink); 
+            const urlObj = new URL(linkedinLink); 
+            if (urlObj.protocol !== 'https:' && urlObj.protocol !== 'http:') {
+                return res.status(400).json({ message: "Linkedin link must start with or https://" });
+            }
+            if (!urlObj.hostname.includes('linkedin.com')) {
+                return res.status(400).json({ message: "Link must be a valid linkedin.com domain" });
+            }
         } catch (error) {
-            return res.status(400).json({ message: "Invalid Linkedin Link" });
+            return res.status(400).json({ message: "Invalid Linkedin Link structure" });
         }
     }
 
@@ -106,6 +108,24 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
     next()
 }
 
+export const userEmailValidation = async (req: Request, res: Response, next: NextFunction) => {
+
+    const { email } = req.body;
+
+    if (!email) {
+        res.status(400).json({message: "Enter your email"})
+    }
+
+    const isExist = await User.exists({email})
+
+    if (isExist) {
+        return res.status(400).json({ message: "This Email is already exist. Try Sign in" });
+    }
+
+    if (!validator.isEmail(email)) {
+        return res.status(400).json({ message: "Invalid Email" });
+    }
+}
 
 export const userPasswordValidation = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { password } = req.body

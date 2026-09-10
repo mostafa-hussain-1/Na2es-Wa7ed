@@ -107,16 +107,17 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 
 export const updateUser = async (req: AuthRequest, res: Response) => {
     const id = req.user?.id;
-    const { avatarIndex, name, email, whatsappNumber, discordUsername, codeforcesHandle, githubLink, linkedinLink, bio, tracks } = req.body;
+    const { avatarIndex, name, whatsappNumber, discordUsername, codeforcesHandle, codeforcesRating, codeforcesRank, githubLink, linkedinLink, bio, tracks } = req.body;
 
     try {
         const updatedUser = await User.findByIdAndUpdate(id, {
             avatarIndex,
             name,
-            email,
             whatsappNumber,
             discordUsername,
             codeforcesHandle,
+            codeforcesRating,
+            codeforcesRank,
             githubLink,
             linkedinLink,
             bio,

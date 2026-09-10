@@ -14,7 +14,7 @@ export const calculateProfileScore = (user: any, projectsCount: number): number 
     if (user.linkedinLink) score += 10;
     if (user.codeforcesHandle) score += 10;
     if (user.bio) score += 10;
-    if (user.whatsappNumber && user.discordUsername) score += 10;
+    if (user.discordUsername) score += 10;
 
     score += (projectsCount * 20);
 
