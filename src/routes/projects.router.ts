@@ -41,7 +41,7 @@ export const projectsRouter = Router();
  *       500:
  *         description: Server error
  */
-projectsRouter.get('/user/:ownerId', verifyToken, getProjectsByOwnerId);
+projectsRouter.get('/user/:ownerId', getProjectsByOwnerId);
 
 /**
  * @openapi
@@ -68,7 +68,7 @@ projectsRouter.get('/user/:ownerId', verifyToken, getProjectsByOwnerId);
  *       500:
  *         description: Server error
  */
-projectsRouter.get('/:id', verifyToken, getProjectById);
+projectsRouter.get('/:id', getProjectById);
 
 /**
  * @openapi
