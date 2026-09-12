@@ -19,11 +19,11 @@ export const getAllTeams = async (req: Request, res: Response) => {
             ];
         }
 
-        // 4. السحر هنا: بنجيب التيمات والعدد الكلي في نفس اللحظة عشان السرعة
         const [teams, totalTeams] = await Promise.all([
         Team.find(filterQuery)
             .populate('leaderId', 'name avatarIndex')
             .sort({ createdAt: -1 })
+            .skip(skip)
             .limit(limit),
         Team.countDocuments(filterQuery)
         ]);
