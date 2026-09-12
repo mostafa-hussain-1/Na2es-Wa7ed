@@ -58,14 +58,25 @@ export const getAllUsers = async (req: Request, res: Response) => {
     const skip = (page - 1) * limit;
 
     try {
-        const users = await User.find()
-            .skip(skip)
-            .limit(limit);
+        const [users, totalUsers] = await Promise.all([
+            User.find().sort({ profileScore: -1 }).skip(skip).limit(limit),
+            User.countDocuments()
+        ]);
     
         if (users.length === 0) {
             return res.status(404).json({ message: "No users found" });
         }
-        return res.status(200).json(users);
+        const totalPages = Math.ceil(totalUsers / limit);
+
+        // بنرجع الداتا متغلفة صح عشان الفرونت إند يفهمها
+        return res.status(200).json({
+            users,
+            pagination: {
+                totalUsers,
+                currentPage: page,
+                totalPages
+            }
+        });
     
     }catch (error) {
         console.error("Error fetching user:", error);
