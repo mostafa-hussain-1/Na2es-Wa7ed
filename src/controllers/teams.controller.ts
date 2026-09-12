@@ -6,9 +6,18 @@ import { calculateAndUpdateProfileScore } from "../helpers/scoreCalculator.js";
 
 export const getAllTeams = async (req: Request, res: Response) => {
 
-    try {
-        const teams = await Team.find().populate('leaderId', 'name avatarIndex')
+    const query = req.query.search as string;
 
+    try {
+        let teams:any = []
+        if (!query || query === "") {
+            teams = await Team.find().populate('leaderId', 'name avatarIndex')
+        }
+        else {
+            teams = await Team.find({
+                course: { $regex: query, $options: 'i' }
+            }).populate('leaderId', 'name avatarIndex');
+        }
         if (teams.length === 0) {
             return res.status(404).json({message: "Teams not found"})
         }
@@ -108,8 +117,12 @@ export const editTeam = async (req: AuthRequest, res: Response) => {
     try {
         team.post = post;
         team.course = course;
-        team.numOfRequiredMembers = numOfRequiredMembers;
 
+        if (numOfRequiredMembers > team.numOfRequiredMembers) {
+            team.isCompleted = false;
+        }
+
+        team.numOfRequiredMembers = numOfRequiredMembers;
         await team.save();
 
         res.status(200).json(team)
@@ -127,7 +140,7 @@ export const deleteTeam = async (req: AuthRequest, res: Response) => {
 
         if (team.membersList && team.membersList.length > 0) {
             return res.status(400).json({ 
-                message: "You can't delete team if you have members" 
+                message: "Cannot delete a team with active members." 
             });
         }
 

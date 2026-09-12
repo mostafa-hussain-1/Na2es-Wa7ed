@@ -33,14 +33,14 @@ export const fetchCodeforcesData = async (handle: string) => {
 
 export const scheduleCodeforcesUpdate = () => {
     cron.schedule('0 0 * * *', async () => {
-        console.log('⏳ جاري تحديث تقييمات Codeforces لكل المستخدمين...');
+        console.log('Updating Codeforces rating for all users...');
 
         try {
             
             const usersWithCf = await User.find({ codeforcesHandle: { $exists: true, $ne: "" } });
             
             if (usersWithCf.length === 0) {
-                console.log('مفيش مستخدمين عندهم هاندل كودفورسيز للتحديث.');
+                console.log('There is no users enterd codeforces handel');
                 return;
             }
 
@@ -64,10 +64,10 @@ export const scheduleCodeforcesUpdate = () => {
                 }));
 
                 await User.bulkWrite(bulkOps);
-                console.log(`✅ تم تحديث تقييمات ${usersWithCf.length} مستخدم بنجاح!`);
+                console.log(`Rating updated for ${usersWithCf.length} user successfully`);
             }
         } catch (error) {
-            console.error('❌ خطأ أثناء تحديث تقييمات Codeforces:', error);
+            console.error('Error in fetching rating from codeforces', error);
         }
     });
 };

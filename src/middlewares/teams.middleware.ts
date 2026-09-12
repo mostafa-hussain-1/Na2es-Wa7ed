@@ -21,10 +21,10 @@ export const preventDuplicateCourseTeam = async (req: AuthRequest, res: Response
 
     try {
         const userId = req.user?.id as string
-        let course = req.team?.course
+        let course = req.team?.course || req.body?.course;
 
         if (!course) {
-            return res.status(404).json({ message: "Team not found" });
+            return res.status(404).json({ message: "Select a course" });
         }
 
         const existingTeam = await Team.findOne({ 
@@ -55,14 +55,14 @@ export const editTeamDataValidation = (req: AuthRequest, res: Response, next: Ne
     if (course !== team.course) {
 
         if (team?.membersList.length > 0) {
-            return res.status(400).json({message: "Must Kick Current Members"})
+            return res.status(400).json({message: "You cannot change the course while the team has active members."})
         }
         team.pendingList = []
         team.blockList = []
     }
     if (numOfRequiredMembers !== team.numOfRequiredMembers) {
         if (numOfRequiredMembers < 1 || typeof numOfRequiredMembers != 'number' || numOfRequiredMembers < team.membersList.length) {
-            return res.status(400).json({message: "Number of required members must be positive number and greater than or equal num of members"})
+            return res.status(400).json({message: "Number of required members must be positive number and greater than or equal number of members"})
         }
     }
 

@@ -7,7 +7,6 @@ import { AuthRequest } from "./auth.middleware.js"
 
 
 export const userDataValidation = async (req: Request, res: Response, next: NextFunction) => {
-
     const {
             avatarIndex,
             name,
@@ -125,6 +124,7 @@ export const userEmailValidation = async (req: Request, res: Response, next: Nex
     if (!validator.isEmail(email)) {
         return res.status(400).json({ message: "Invalid Email" });
     }
+    next()
 }
 
 export const userPasswordValidation = async (req: AuthRequest, res: Response, next: NextFunction) => {
