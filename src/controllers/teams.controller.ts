@@ -6,23 +6,42 @@ import { calculateAndUpdateProfileScore } from "../helpers/scoreCalculator.js";
 
 export const getAllTeams = async (req: Request, res: Response) => {
 
-    const query = req.query.search as string;
+    const search = req.query.search as string;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
 
     try {
-        let teams:any = []
-        if (!query || query === "") {
-            teams = await Team.find().populate('leaderId', 'name avatarIndex')
+        const filterQuery: any = {};
+        if (search) {
+            filterQuery.$or = [
+                { course: { $regex: search, $options: 'i' } }
+            ];
         }
-        else {
-            teams = await Team.find({
-                course: { $regex: query, $options: 'i' }
-            }).populate('leaderId', 'name avatarIndex');
-        }
+
+        // 4. السحر هنا: بنجيب التيمات والعدد الكلي في نفس اللحظة عشان السرعة
+        const [teams, totalTeams] = await Promise.all([
+        Team.find(filterQuery)
+            .populate('leaderId', 'name avatarIndex')
+            .sort({ createdAt: -1 })
+            .limit(limit),
+        Team.countDocuments(filterQuery)
+        ]);
+
+        const totalPages = Math.ceil(totalTeams / limit);
         if (teams.length === 0) {
             return res.status(404).json({message: "Teams not found"})
         }
 
-        return res.status(200).json(teams)
+        return res.status(200).json({teams, 
+            pagination: {
+                totalTeams,
+                currentPage: page,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            }
+        })
     }
     catch (error) {
         console.error("Error fetching all teams:", error);

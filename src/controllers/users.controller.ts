@@ -53,8 +53,14 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
 
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
     try {
-        const users = await User.find();
+        const users = await User.find()
+            .skip(skip)
+            .limit(limit);
     
         if (users.length === 0) {
             return res.status(404).json({ message: "No users found" });
