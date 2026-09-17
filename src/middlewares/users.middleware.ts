@@ -26,7 +26,7 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
     const nameRegex = /^[\u0600-\u06FFa-zA-Z\s]+$/;
     
     if (!name || typeof name !== 'string' || name.trim() === '' || !nameRegex.test(name)) {
-        return res.status(400).json({message: "Name must be a valid string"})
+        return res.status(400).json({message: "Full name must be in Arabic or English letters."})
     }
 
     if (tracks) {
