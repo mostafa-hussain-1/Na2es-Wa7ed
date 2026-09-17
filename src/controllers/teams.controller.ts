@@ -22,6 +22,7 @@ export const getAllTeams = async (req: Request, res: Response) => {
         const [teams, totalTeams] = await Promise.all([
         Team.find(filterQuery)
             .populate('leaderId', 'name avatarIndex')
+            .populate('membersList', 'name avatarIndex profileScore bio')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit),
@@ -55,9 +56,9 @@ export const getTeamByID = async (req: Request, res: Response) => {
     try {
         const team = await Team.findById(id)
             .populate('leaderId', 'name bio avatarIndex')
-            .populate('pendingList', 'name bio avatarIndex')
-            .populate('membersList', 'name bio avatarIndex')
-            .populate('blockList', 'name bio avatarIndex');
+            .populate('pendingList', 'name bio avatarIndex profileScore')
+            .populate('membersList', 'name bio avatarIndex profileScore')
+            .populate('blockList', 'name bio avatarIndex profileScore');
         if (!team) {
             return res.status(404).json({message: "Team not found"})
         }
