@@ -22,8 +22,10 @@ export const userDataValidation = async (req: Request, res: Response, next: Next
     if (typeof avatarIndex !== 'number' || avatarIndex > 2 || avatarIndex <= -1) {
         return res.status(400).json({message: "Invalid avatar index"})
     }
+
+    const nameRegex = /^[\u0600-\u06FFa-zA-Z\s]+$/;
     
-    if (!name || typeof name !== 'string' || name.trim() === '') {
+    if (!name || typeof name !== 'string' || name.trim() === '' || !nameRegex.test(name)) {
         return res.status(400).json({message: "Name must be a valid string"})
     }
 
