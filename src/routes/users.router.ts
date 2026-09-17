@@ -152,7 +152,7 @@ usersRouter.post("/", userEmailValidation, userDataValidation, userPasswordValid
  *       500:
  *         description: Internal Server Error
  */
-usersRouter.patch("/:id", verifyToken, verifyOwnership(User, '_id', 'team', true), isCorrectPassword, userPasswordValidation, changePassword);
+usersRouter.patch("/:id", verifyToken, verifyOwnership(User, '_id', 'user', true), isCorrectPassword, userPasswordValidation, changePassword);
 
 /**
  * @openapi
