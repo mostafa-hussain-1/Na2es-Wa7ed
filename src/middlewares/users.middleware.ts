@@ -157,9 +157,9 @@ export const userPasswordValidation = async (req: AuthRequest, res: Response, ne
 export const isCorrectPassword = async (req: AuthRequest, res: Response, next: NextFunction) => {
 
     let { oldPassword } = req.body;
-    const user: any = req.user
+    const id = req.user?.id
     
-    //const user: any = await User.findById(id)
+    const user: any = await User.findById(id).select('+password')
     
     const isPasswordValid = await bcrypt.compare(oldPassword, user.password)
     
