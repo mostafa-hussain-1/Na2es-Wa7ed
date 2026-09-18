@@ -130,15 +130,15 @@ export const userEmailValidation = async (req: Request, res: Response, next: Nex
 }
 
 export const userPasswordValidation = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const { newPassword } = req.body
+    const { password } = req.body
 
-    if (!newPassword) {
+    if (!password) {
         return res.status(400).json({ message: "Password is required" });
     }
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
 
-    if (!passwordRegex.test(newPassword)) {
+    if (!passwordRegex.test(password)) {
         return res.status(400).json({ 
             message: "Week password, Password must contain at least 8 characters, capital letter, small letter, numbers, special letters" 
         });
@@ -146,7 +146,7 @@ export const userPasswordValidation = async (req: AuthRequest, res: Response, ne
 
     try {
         const salt = await bcrypt.genSalt(10);
-        req.body.password = await bcrypt.hash(newPassword, salt);
+        req.body.password = await bcrypt.hash(password, salt);
     } catch (error) {
         return res.status(500).json({message: "Internal Server Error"})
     }

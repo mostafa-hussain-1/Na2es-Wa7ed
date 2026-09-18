@@ -105,10 +105,10 @@ export const getUserById = async (req: Request, res: Response) => {
 export const changePassword = async (req: AuthRequest, res: Response) => {
     
     const id = req.user?.id;
-    const { newPassword } = req.body;
+    const { password } = req.body;
     
     try {
-        const updatedUser = await User.findByIdAndUpdate(id, { password: newPassword }, { returnDocument: 'after' });
+        const updatedUser = await User.findByIdAndUpdate(id, { password: password }, { returnDocument: 'after' });
 
         if (!updatedUser) {
             return res.status(404).json({ message: "User not found" });
