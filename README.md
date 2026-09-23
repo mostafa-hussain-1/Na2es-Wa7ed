@@ -23,8 +23,6 @@
 
 ## 📂 Project Structure
 
-## 📂 Project Structure
-
 ```text
 📦 src
  ┣ 📂 config         # Database connection and Swagger API configuration
