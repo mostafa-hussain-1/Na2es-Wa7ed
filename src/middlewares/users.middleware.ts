@@ -136,11 +136,11 @@ export const userPasswordValidation = async (req: AuthRequest, res: Response, ne
         return res.status(400).json({ message: "Password is required" });
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
-
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9])\S{8,}$/;
+    
     if (!passwordRegex.test(password)) {
-        return res.status(400).json({ 
-            message: "Week password, Password must contain at least 8 characters, capital letter, small letter, numbers, special letters" 
+        return res.status(400).json({
+            message: "Weak password, Password must contain at least 8 characters, capital letter, small letter, numbers and special letters" 
         });
     }
 
