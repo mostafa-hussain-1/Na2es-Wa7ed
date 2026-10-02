@@ -56,7 +56,7 @@ usersRouter.get("/", getAllUsers);
  *       500:
  *         description: Internal Server Error
  */
-usersRouter.get("/:id", verifyToken, getUserById);
+usersRouter.get("/:id", getUserById);
 
 /**
  * @openapi
