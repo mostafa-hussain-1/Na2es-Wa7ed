@@ -253,6 +253,16 @@ export const acceptMember = async (req: AuthRequest, res: Response) => {
         }
         await team.save();
 
+        await Team.updateMany(
+            { 
+                course: team.course,
+                _id: { $ne: team._id }
+            }, 
+            { 
+                $pull: { pendingList: memberId }
+            }
+        );
+
         const user: any = await User.findById(memberId)
         user.acceptedCourses.addToSet(team.course)
         await user.save();
