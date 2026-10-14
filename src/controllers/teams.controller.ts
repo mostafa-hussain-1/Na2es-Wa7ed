@@ -77,7 +77,10 @@ export const getTeamsByLeaderId = async (req: Request, res: Response) => {
         const { leaderId } = req.params
 
         const teams = await Team.find({leaderId: leaderId as any}) 
-
+            .populate('leaderId', 'name bio avatarIndex')
+            .populate('pendingList', 'name bio avatarIndex profileScore')
+            .populate('membersList', 'name bio avatarIndex profileScore')
+            .populate('blockList', 'name bio avatarIndex profileScore');
         if (!teams) {
             return res.status(404).json({message: "Teams not found"})
         }
