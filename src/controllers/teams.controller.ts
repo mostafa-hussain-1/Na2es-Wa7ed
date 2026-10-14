@@ -94,6 +94,29 @@ export const getTeamsByLeaderId = async (req: Request, res: Response) => {
     }
 }
 
+export const getJoinedTeamsByUserId = async (req: AuthRequest, res: Response) => {
+
+    try {
+        const userId = req.user?.id
+
+        const teams = await Team.find({membersList: userId as any})
+            .populate('leaderId', 'name bio avatarIndex')
+            .populate('pendingList', 'name bio avatarIndex profileScore')
+            .populate('membersList', 'name bio avatarIndex profileScore')
+            .populate('blockList', 'name bio avatarIndex profileScore');
+        if (!teams) {
+            return res.status(404).json({message: "Teams not found"})
+        }
+
+        return res.status(200).json(teams)
+    }
+    catch (error){
+
+        console.error("Error fetching teams by user id:", error);
+        return res.status(500).json({ message: "Internal server error55" });
+    }
+}
+
 export const createTeam = async (req: AuthRequest, res: Response) => {
     
     const { post, course, numOfRequiredMembers } = req.body

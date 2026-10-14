@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyToken } from "../middlewares/auth.middleware.js";
-import { getAllTeams, getTeamByID, getTeamsByLeaderId,
+import { getAllTeams, getTeamByID, getTeamsByLeaderId, getJoinedTeamsByUserId,
          createTeam, editTeam, deleteTeam, 
          applyToTeam, cancelApply, leaveTeam, 
          acceptMember, rejectMember, kickMember
@@ -37,6 +37,30 @@ export const teamsRouter = Router()
  *         description: Server error
  */
 teamsRouter.get('/', getAllTeams);
+
+
+/**
+ * @openapi
+ * /teams/joined/:userId:
+ *   get:
+ *     summary: Get all teams a user has joined
+ *     tags: [Teams]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user's ID
+ *     responses:
+ *       200:
+ *         description: List of joined teams
+ *       404:
+ *         description: User or teams not found
+ *       500:
+ *         description: Server error
+ */
+teamsRouter.get('/joined/', verifyToken, getJoinedTeamsByUserId);
 
 /**
  * @openapi
