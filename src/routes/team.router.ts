@@ -86,7 +86,7 @@ teamsRouter.get('/:id', getTeamByID);
  *       500:
  *         description: Server error
  */
-teamsRouter.get('/leader/:leaderId', verifyToken, getTeamsByLeaderId);
+teamsRouter.get('/leader/:leaderId', getTeamsByLeaderId);
 
 /**
  * @openapi
